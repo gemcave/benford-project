@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fs;
 
@@ -23,6 +24,14 @@ fn main() {
 		}
 	}
 	log::debug!("Frequency: {:?}", frequency);
+
+	let total: usize = frequency.values().sum();
+	let percentage: BTreeMap<char, f32> = frequency
+		.into_iter()
+		.map(|(digit, count)| (digit, count as f32 / total as f32))
+		.collect();
+
+	log::info!("Percentage: {:#.2?}", percentage);
 }
 
 fn get_first_digit(record: &csv::StringRecord) -> Option<char> {
