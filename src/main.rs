@@ -1,9 +1,9 @@
-use env_logger;
+use std::collections::HashMap;
 use std::fs;
 
 fn main() {
 	env_logger::init();
-
+	let mut frequency = HashMap::new();
 	let dataset = "datasets/census.csv";
 	log::info!("Reading dataset from {}", dataset);
 	let file = fs::File::open(dataset).expect("Cannot read dataset");
@@ -12,6 +12,26 @@ fn main() {
 	log::info!("Parsing CSV records");
 	for record in reader.records() {
 		let record = record.expect("Invalid record");
-		log::trace!("{:?}", record)
+
+		if let Some(digit) = get_first_digit(&record) {
+			log::trace!("Found digit '{}' in {:?}", digit, record);
+
+			let count = frequency.entry(digit).or_insert(0);
+			*count += 1;
+		} else {
+			log::warn!("No valid digit found in {:?}", record);
+		}
+	}
+	log::debug!("Frequency: {:?}", frequency);
+}
+
+fn get_first_digit(record: &csv::StringRecord) -> Option<char> {
+	log::trace!("Parsing record: {:?}", record);
+	match record.get(1) {
+		Some(population) => population
+			.chars()
+			.next()
+			.filter(|c| c.is_ascii_digit() && *c != '0'),
+		None => None,
 	}
 }
